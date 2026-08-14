@@ -133,6 +133,30 @@ module Invidious::Database::ChannelVideos
     return PG_DB.query_all(request, ids, as: ChannelVideo)
   end
 
+  # Up to `per_channel` of the newest videos from each of the given channels.
+  # Capping per channel rather than taking a flat "most recent N" stops one
+  # prolific uploader from supplying every seed of the discovery feed.
+  def select_recent_per_channel(ucids : Array(String), per_channel : Int32, limit : Int32) : Array(ChannelVideo)
+    return [] of ChannelVideo if ucids.empty?
+
+    request = <<-SQL
+      SELECT id, title, published, updated, ucid, author,
+             length_seconds, live_now, premiere_timestamp, views
+      FROM (
+        SELECT *, row_number() OVER (
+          PARTITION BY ucid ORDER BY published DESC
+        ) AS rn
+        FROM channel_videos
+        WHERE ucid = ANY($1)
+      ) ranked
+      WHERE rn <= $2
+      ORDER BY published DESC
+      LIMIT $3
+    SQL
+
+    return PG_DB.query_all(request, ucids, per_channel, limit, as: ChannelVideo)
+  end
+
   def select_notfications(ucid : String, since : Time) : Array(ChannelVideo)
     request = <<-SQL
       SELECT * FROM channel_videos

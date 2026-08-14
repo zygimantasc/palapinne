@@ -136,6 +136,9 @@ class Config
   property login_enabled : Bool = true
   property registration_enabled : Bool = true
   property statistics_enabled : Bool = false
+  # Drop recommendations sharing no words with the watched video's title or
+  # tags. Filters geo-targeted filler and unrelated clips out of the sidebar.
+  property filter_related_videos : Bool = true
   property admins : Array(String) = [] of String
   property external_port : Int32? = nil
   property default_user_preferences : ConfigPreferences = ConfigPreferences.from_yaml("")

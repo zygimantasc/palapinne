@@ -15,3 +15,9 @@
 # Invidious with `--cross-compile` argument
 # Example: `crystal build src/invidious.cr --cross-compile`
 /invidious.o
+
+# Local instance secrets and scratch files (palapinne fork)
+.env
+*.sql.gz
+rec_prototype.py
+rec_v2.py

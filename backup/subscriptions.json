@@ -1,0 +1,13 @@
+{
+  "note": "Invidious subscriptions backup. Restore by subscribing to each ucid, or import via /data_control.",
+  "channels": [
+    {
+      "ucid": "UCwnKziETDbHJtx78nIkfYug",
+      "author": "CaspianReport"
+    },
+    {
+      "ucid": "UC4ZVkG3RQPzvZk7alIVjcCg",
+      "author": "Sandeep Swadia"
+    }
+  ]
+}

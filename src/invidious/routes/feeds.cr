@@ -61,6 +61,23 @@ module Invidious::Routes::Feeds
     templated "feeds/trending"
   end
 
+  def self.discover(env)
+    locale = env.get("preferences").as(Preferences).locale
+
+    user = env.get? "user"
+    referer = get_referer(env)
+
+    return env.redirect referer if !user
+    user = user.as(User)
+    env.set "user", user
+
+    region = env.params.query["region"]? || CONFIG.default_user_preferences.region
+    force_refresh = env.params.query["refresh"]? == "1"
+    discover_videos = Invidious::Discover.for_user(user, region, force_refresh)
+
+    templated "feeds/discover"
+  end
+
   def self.subscriptions(env)
     locale = env.get("preferences").as(Preferences).locale
 

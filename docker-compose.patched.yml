@@ -1,0 +1,16 @@
+# Override: build Invidious from the locally patched source instead of
+# pulling the prebuilt image.
+#
+# Patch applied: src/invidious/videos.cr:127 — the `storyboards` fallback
+# built a JSON::Any wrapping the STRING "{}" rather than an empty Hash, so
+# any video whose player response lacks a "storyboards" key crashed the
+# api/v1 JSON serializer mid-response (HTTP 200, empty body).
+#
+#   docker compose -f docker-compose.local.yml -f docker-compose.patched.yml up -d --build
+
+services:
+  invidious:
+    image: invidious-patched:local
+    build:
+      context: .
+      dockerfile: docker/Dockerfile

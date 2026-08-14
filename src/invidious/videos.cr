@@ -87,8 +87,49 @@ struct Video
     end
   end
 
+  # Words carrying no topical signal, so they can't be the reason a related
+  # video is considered relevant.
+  RELATED_STOPWORDS = Set(String).new(%w[
+    the and for with are was were been this that from your you the not but
+    official video music lyrics hour full new hits best top how what why
+    live album song feat remix version part episode watch
+  ])
+
+  private def topic_tokens(text : String?, into : Set(String))
+    return if text.nil? || text.empty?
+    text.downcase.split(/[^\p{L}\p{N}]+/).each do |word|
+      next if word.size < 3 || RELATED_STOPWORDS.includes?(word)
+      into << word
+    end
+  end
+
   def related_videos
-    info["relatedVideos"]?.try &.as_a.map { |h| h.as_h.transform_values &.as_s } || [] of Hash(String, String)
+    all = info["relatedVideos"]?.try &.as_a.map { |h| h.as_h.transform_values &.as_s } || [] of Hash(String, String)
+
+    return all if !CONFIG.filter_related_videos
+
+    # Topic of the video being watched: its title plus YouTube's own tags.
+    topic = Set(String).new
+    topic_tokens(self.title, topic)
+    self.keywords.each { |kw| topic_tokens(kw, topic) }
+    return all if topic.empty?
+
+    own_ucid = self.ucid
+
+    kept = all.select do |rv|
+      # Same-channel videos are related by construction, regardless of wording.
+      next true if !own_ucid.empty? && rv["ucid"]? == own_ucid
+
+      candidate = Set(String).new
+      topic_tokens(rv["title"]?, candidate)
+      topic_tokens(rv["author"]?, candidate)
+      candidate.any? { |word| topic.includes?(word) }
+    end
+
+    # No "too few results, show everything anyway" fallback: restoring the
+    # unfiltered list puts back exactly the geo-filler this is meant to drop.
+    # A short sidebar beats a padded one.
+    kept
   end
 
   # Methods for parsing streaming data
@@ -124,7 +165,7 @@ struct Video
   # Misc. methods
 
   def storyboards
-    container = info.dig?("storyboards") || JSON::Any.new("{}")
+    container = info.dig?("storyboards") || JSON::Any.new(Hash(String, JSON::Any).new)
     return IV::Videos::Storyboard.from_yt_json(container, self.length_seconds)
   end
 
