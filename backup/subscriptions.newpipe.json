@@ -1,0 +1,91 @@
+{
+  "app_version": "0.0.0",
+  "app_version_int": 0,
+  "subscriptions": [
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCiRiQGCHGjDLT9FQXFW0I3A",
+      "name": "Academy of Ideas"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCNye-wNBqNL5ZzHSJj3l8Bg",
+      "name": "Al Jazeera English"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCdl3ece6ZfQwsiLbMnh2bCw",
+      "name": "AstroKobi"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCwnKziETDbHJtx78nIkfYug",
+      "name": "CaspianReport"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCDq5v10l4wkV5-ZBIJJFbzQ",
+      "name": "Ethan Chlebowski"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCsBjURrPoezykLs9EqgamOA",
+      "name": "Fireship"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCgBg0aacyJnw4qUnb1FlfEQ",
+      "name": "Institute of Human Anatomy"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCWEfgEJg-R-BfDmZCOKzg4Q",
+      "name": "Jung Thoughts"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UC_gSotrFVZ_PiAxo3fTQVuQ",
+      "name": "Magnus Midtbø"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCswG6FSbgZjbWtdf_hMLaow",
+      "name": "Matt Pocock"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCCDtBHQGboy9eTvNd_KqfTA",
+      "name": "Project Happiness "
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UComwL29zYKujb1JhkB0EcGA",
+      "name": "River Monsters™"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UC5MOW8BO3dH38Fo3Rau17KQ",
+      "name": "The Royal Society"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCFyAgi9phA7ErVY_bPC1Cjg",
+      "name": "T&H - Inspiration & Motivation"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCvy6TA5egUGHnZXVRYDKOhg",
+      "name": "TriggTube"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UC9K9Wnz6t4cLnCdTzAVrXqQ",
+      "name": "Vinh Giang"
+    },
+    {
+      "service_id": 0,
+      "url": "https://www.youtube.com/channel/UCDoJIpPvtEwFvfNXsZvCqKw",
+      "name": "Xander Budnick"
+    }
+  ]
+}

@@ -191,7 +191,53 @@ docker compose -f docker-compose.local.yml -f docker-compose.patched.yml down
 ```
 
 Serves on <http://127.0.0.1:3001> (3000 was taken by another container locally).
-Bound to localhost only — nothing else on the network can reach it.
+Bound to localhost only — nothing else on the network can reach it. To reach it
+from a phone or TV, change the port binding in `docker-compose.local.yml` from
+`127.0.0.1:3001` to `0.0.0.0:3001` and use the machine's LAN address.
+
+### On a fresh machine
+
+Everything except secrets and the database is in this repo, so:
+
+```sh
+git clone https://github.com/zygimantasc/palapinne.git
+cd palapinne
+# ...create .env as above...
+docker compose -f docker-compose.local.yml -f docker-compose.patched.yml up -d --build
+```
+
+Then register an account at `/login?type=register` and restore subscriptions:
+
+```sh
+./backup/restore-subscriptions.sh your-account-name
+```
+
+Or, with no shell access to the host, upload `backup/subscriptions.newpipe.json`
+at `/data_control` → "Import NewPipe data". Same result.
+
+Finally, open `/feed/subscriptions` once: that triggers the first fetch of those
+channels' videos, which is what Discover seeds from. Until it runs, Discover has
+nothing to work with.
+
+Note the new account starts with stock preferences — `default_user_preferences`
+only seeds accounts at creation, and Discover/nav changes are per-user (see
+patch 4).
+
+### Keeping subscriptions in the repo
+
+`backup/` is the source of truth across machines, but it does not update itself.
+After subscribing or unsubscribing:
+
+```sh
+./backup/export-subscriptions.sh your-account-name   # rewrites both backup files
+git add backup && git commit -m "Update subscriptions" && git push
+```
+
+The export writes a readable `subscriptions.json` and an importable
+`subscriptions.newpipe.json`; the restore script reads the former. Both scripts
+are idempotent and additive — restoring never removes a subscription, so running
+them twice is harmless. **Unsubscribing on one machine does not propagate**; the
+restore only ever adds.
 
 `docker-compose.local.yml` holds the config; `docker-compose.patched.yml`
 overrides the upstream prebuilt image with a local source build. Dropping the

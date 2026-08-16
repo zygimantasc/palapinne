@@ -1,6 +1,7 @@
 {
-  "note": "Invidious subscriptions backup. Restore by subscribing to each ucid, or import via /data_control.",
-  "count": 18,
+  "note": "Invidious subscriptions backup. Import subscriptions.newpipe.json at /data_control, or run backup/restore-subscriptions.sh.",
+  "account": "silicone",
+  "count": 17,
   "channels": [
     {
       "ucid": "UCiRiQGCHGjDLT9FQXFW0I3A",
@@ -41,10 +42,6 @@
     {
       "ucid": "UCswG6FSbgZjbWtdf_hMLaow",
       "author": "Matt Pocock"
-    },
-    {
-      "ucid": "UCbo-KbSjJDG6JWQ_MTZ_rNA",
-      "author": "Nick Saraev"
     },
     {
       "ucid": "UCCDtBHQGboy9eTvNd_KqfTA",
