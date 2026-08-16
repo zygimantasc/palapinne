@@ -149,6 +149,25 @@ UPDATE channels SET deleted = false WHERE deleted = true;
 This is the second confirmed upstream breakage in this fork (with patch 1) and
 is worth reporting — subject to `AI_POLICY.md`.
 
+### 6. Discover source attribution — `watch.ecr`, `routes/watch.cr`, `discover.cr`
+
+Each `Suggestion` carries `sources`: the ucids of the subscribed channels whose
+seed videos surfaced it. Discover links pass the first one as `?via=<ucid>`, and
+the watch page resolves it against the `channels` table to render
+"Suggested via <channel>" above the title.
+
+The point is diagnosis: when a subscription produces nothing but junk, opening
+one of its suggestions names it, so it can be dropped.
+
+Limits: only the first source travels in the URL (multi-source suggestions are
+rare - 2 of 34 in a measured run), and the line appears only when arriving from
+Discover, since nothing suggested a video reached any other way.
+
+`views/feeds/discover.ecr` deliberately renders its own cards instead of reusing
+`components/item`. Threading a new field through that shared component would
+conflict on every rebase; the Discover template is fork-owned and does not. The
+cost is that Discover cards do not inherit upstream changes to the shared card.
+
 ## Running it
 
 Secrets are **not** in this repo. Create `.env` in the repo root:
@@ -191,11 +210,19 @@ git rebase upstream/master        # or merge
 
 Conflicts to expect, in likelihood order:
 
-- `src/invidious/videos.cr` — both patches live here; patch 1 disappears if
-  upstream fixes it (check `def storyboards` before re-applying)
-- `src/invidious/routes/feeds.cr` and `routing.cr` — upstream edits these often
-- `src/invidious/database/channels.cr` — one added method, usually clean
-- `src/invidious/discover.cr` and `views/feeds/discover.ecr` — new files, never conflict
+- `src/invidious/channels/channels.cr` — `fetch_channel` was rewritten wholesale
+  (patch 5). If upstream has fixed the RSS breakage themselves, prefer their
+  version; otherwise keep this one.
+- `src/invidious/videos.cr` — patches 1 and 2 both live here; patch 1 disappears
+  if upstream fixes it (check `def storyboards` before re-applying)
+- `src/invidious/views/watch.ecr` — a small insertion above the title block
+  (patch 6). Upstream touches this file often; expect a conflict.
+- `src/invidious/routes/watch.cr` — one block before `templated "watch"`
+- `src/invidious/routes/feeds.cr`, `routes/misc.cr` and `routing.cr` — upstream
+  edits these often
+- `src/invidious/database/channels.cr` — two added methods, usually clean
+- `src/invidious/discover.cr` and `views/feeds/discover.ecr` — fork-owned files,
+  never conflict
 
 After any rebase, rebuild and verify:
 
@@ -208,7 +235,15 @@ That video has no storyboards, so an empty body means patch 1 is gone.
 ## Backups
 
 `backup/subscriptions.json` — channel IDs and names, restorable by resubscribing
-or via `/data_control`.
+or via `/data_control`. Regenerate after subscription changes:
+
+```sh
+docker compose -f docker-compose.local.yml -f docker-compose.patched.yml \
+  exec -T invidious-db psql -U kemal -d invidious -tAc \
+  "SELECT json_agg(json_build_object('ucid', s.ucid, 'author', c.author) ORDER BY c.author)
+   FROM (SELECT unnest(subscriptions) AS ucid FROM users WHERE email='YOUR_USER') s
+   LEFT JOIN channels c ON c.id = s.ucid;"
+```
 
 The Postgres volume (`invidious_postgresdata`) is **not** in this repo and should
 not be: the `users` table holds a bcrypt password hash and `session_ids` holds

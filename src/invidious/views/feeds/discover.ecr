@@ -18,7 +18,39 @@
 <% else %>
     <div class="pure-g">
     <% discover_videos.each do |item| %>
-        <%= rendered "components/item" %>
+        <div class="pure-u-1 pure-u-md-1-4">
+            <div class="h-box">
+                <div class="thumbnail">
+                    <a tabindex="-1" href="/watch?v=<%= item.id %><% if src = item.sources.first? %>&amp;via=<%= src %><% end %>">
+                        <img loading="lazy" class="thumbnail" src="/vi/<%= item.id %>/mqdefault.jpg" alt="" />
+                    </a>
+                    <% if item.length_seconds > 0 %>
+                        <div class="bottom-right-overlay">
+                            <p class="length"><%= recode_length_seconds(item.length_seconds) %></p>
+                        </div>
+                    <% end %>
+                </div>
+
+                <div class="video-card-row">
+                    <a href="/watch?v=<%= item.id %><% if src = item.sources.first? %>&amp;via=<%= src %><% end %>"><p dir="auto"><%= HTML.escape(item.title) %></p></a>
+                </div>
+
+                <div class="video-card-row flexible">
+                    <div class="flex-left">
+                        <% if !item.ucid.empty? %>
+                            <a href="/channel/<%= item.ucid %>"><p class="channel-name" dir="auto"><%= HTML.escape(item.author) %></p></a>
+                        <% else %>
+                            <p class="channel-name" dir="auto"><%= HTML.escape(item.author) %></p>
+                        <% end %>
+                    </div>
+                    <div class="flex-right">
+                        <% if item.views > 0 %>
+                            <p class="video-data"><%= number_to_short_text(item.views) %> views</p>
+                        <% end %>
+                    </div>
+                </div>
+            </div>
+        </div>
     <% end %>
     </div>
 <% end %>

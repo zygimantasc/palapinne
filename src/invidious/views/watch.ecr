@@ -239,6 +239,14 @@ we're going to need to do it here in order to allow for translations.
 
     <div class="pure-u-1 <% if params.related_videos || plid %>pure-u-lg-3-5<% else %>pure-u-md-4-5<% end %>">
 
+        <% if suggested_via %>
+            <div class="h-box">
+                <p class="video-data" style="opacity:0.7">
+                    Suggested via <a href="/channel/<%= suggested_via.id %>"><%= HTML.escape(suggested_via.author) %></a>
+                </p>
+            </div>
+        <% end %>
+
         <div class="pure-g h-box flexible title">
             <div class="pure-u-1-2 flex-left flexible">
                 <a href="/channel/<%= video.ucid %>">

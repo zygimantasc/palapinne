@@ -1,13 +1,78 @@
 {
   "note": "Invidious subscriptions backup. Restore by subscribing to each ucid, or import via /data_control.",
+  "count": 18,
   "channels": [
+    {
+      "ucid": "UCiRiQGCHGjDLT9FQXFW0I3A",
+      "author": "Academy of Ideas"
+    },
+    {
+      "ucid": "UCNye-wNBqNL5ZzHSJj3l8Bg",
+      "author": "Al Jazeera English"
+    },
+    {
+      "ucid": "UCdl3ece6ZfQwsiLbMnh2bCw",
+      "author": "AstroKobi"
+    },
     {
       "ucid": "UCwnKziETDbHJtx78nIkfYug",
       "author": "CaspianReport"
     },
     {
-      "ucid": "UC4ZVkG3RQPzvZk7alIVjcCg",
-      "author": "Sandeep Swadia"
+      "ucid": "UCDq5v10l4wkV5-ZBIJJFbzQ",
+      "author": "Ethan Chlebowski"
+    },
+    {
+      "ucid": "UCsBjURrPoezykLs9EqgamOA",
+      "author": "Fireship"
+    },
+    {
+      "ucid": "UCgBg0aacyJnw4qUnb1FlfEQ",
+      "author": "Institute of Human Anatomy"
+    },
+    {
+      "ucid": "UCWEfgEJg-R-BfDmZCOKzg4Q",
+      "author": "Jung Thoughts"
+    },
+    {
+      "ucid": "UC_gSotrFVZ_PiAxo3fTQVuQ",
+      "author": "Magnus Midtbø"
+    },
+    {
+      "ucid": "UCswG6FSbgZjbWtdf_hMLaow",
+      "author": "Matt Pocock"
+    },
+    {
+      "ucid": "UCbo-KbSjJDG6JWQ_MTZ_rNA",
+      "author": "Nick Saraev"
+    },
+    {
+      "ucid": "UCCDtBHQGboy9eTvNd_KqfTA",
+      "author": "Project Happiness "
+    },
+    {
+      "ucid": "UComwL29zYKujb1JhkB0EcGA",
+      "author": "River Monsters™"
+    },
+    {
+      "ucid": "UC5MOW8BO3dH38Fo3Rau17KQ",
+      "author": "The Royal Society"
+    },
+    {
+      "ucid": "UCFyAgi9phA7ErVY_bPC1Cjg",
+      "author": "T&H - Inspiration & Motivation"
+    },
+    {
+      "ucid": "UCvy6TA5egUGHnZXVRYDKOhg",
+      "author": "TriggTube"
+    },
+    {
+      "ucid": "UC9K9Wnz6t4cLnCdTzAVrXqQ",
+      "author": "Vinh Giang"
+    },
+    {
+      "ucid": "UCDoJIpPvtEwFvfNXsZvCqKw",
+      "author": "Xander Budnick"
     }
   ]
 }

@@ -48,12 +48,26 @@ module Invidious::Discover
     ucid : String,
     length_seconds : Int32,
     views : Int64,
-    seeds : Int32
+    seeds : Int32,
+    sources : Set(String)
+
+  # What the Discover page renders. `sources` holds the ucids of the subscribed
+  # channels whose videos surfaced this suggestion; the watch page resolves the
+  # first one to a name, so a subscription that only ever produces junk can be
+  # traced back from the video itself.
+  record Suggestion,
+    id : String,
+    title : String,
+    author : String,
+    ucid : String,
+    length_seconds : Int32,
+    views : Int64,
+    sources : Array(String)
 
   # The last feed built for each user. Page loads serve this verbatim, so they
   # are instant and always show the full list. Pressing refresh is the only
   # thing that rebuilds it.
-  @@feeds = {} of String => Array(SearchVideo)
+  @@feeds = {} of String => Array(Suggestion)
 
   # Video IDs already shown, so each refresh brings something the user has not
   # seen yet rather than reshuffling the same set.
@@ -61,7 +75,7 @@ module Invidious::Discover
 
   @@lock = Mutex.new
 
-  def for_user(user : User, region : String? = nil, force_refresh : Bool = false) : Array(SearchVideo)
+  def for_user(user : User, region : String? = nil, force_refresh : Bool = false) : Array(Suggestion)
     if !force_refresh
       if existing = @@lock.synchronize { @@feeds[user.email]? }
         return existing
@@ -88,8 +102,8 @@ module Invidious::Discover
     return feed
   end
 
-  private def build(user : User, region : String?, force_refresh : Bool, seen : Set(String)) : Array(SearchVideo)
-    return [] of SearchVideo if user.subscriptions.empty?
+  private def build(user : User, region : String?, force_refresh : Bool, seen : Set(String)) : Array(Suggestion)
+    return [] of Suggestion if user.subscriptions.empty?
 
     subscribed = user.subscriptions.to_set
     watched = user.watched.to_set
@@ -142,7 +156,10 @@ module Invidious::Discover
         next if title.empty?
 
         if existing = tally[id]?
-          tally[id] = existing.copy_with(seeds: existing.seeds + 1)
+          tally[id] = existing.copy_with(
+            seeds: existing.seeds + 1,
+            sources: existing.sources << seed.ucid
+          )
         else
           tally[id] = Candidate.new(
             id: id,
@@ -151,7 +168,8 @@ module Invidious::Discover
             ucid: ucid,
             length_seconds: rv["length_seconds"]?.try(&.to_i?) || 0,
             views: parse_short_views(rv["short_view_count"]?),
-            seeds: 1
+            seeds: 1,
+            sources: Set{seed.ucid}
           )
         end
       end
@@ -164,20 +182,15 @@ module Invidious::Discover
     ranked = shuffled.select(&.seeds.> 1) + shuffled.select(&.seeds.<= 1)
 
     return ranked.first(RESULT_LIMIT).map do |c|
-      SearchVideo.new({
-        title:              c.title,
-        id:                 c.id,
-        author:             c.author,
-        ucid:               c.ucid,
-        published:          Time.utc,
-        views:              c.views,
-        description_html:   "",
-        length_seconds:     c.length_seconds,
-        premiere_timestamp: nil,
-        author_verified:    false,
-        author_thumbnail:   nil,
-        badges:             VideoBadges::None,
-      })
+      Suggestion.new(
+        id: c.id,
+        title: c.title,
+        author: c.author,
+        ucid: c.ucid,
+        length_seconds: c.length_seconds,
+        views: c.views,
+        sources: c.sources.to_a.sort
+      )
     end
   end
 end

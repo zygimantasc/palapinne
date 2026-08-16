@@ -199,6 +199,13 @@ module Invidious::Routes::Watch
       invidious_companion = CONFIG.invidious_companion.sample
     end
 
+    # Set by links from the Discover feed: which subscribed channel's video
+    # caused this one to be suggested. Lets a subscription that only ever
+    # surfaces junk be traced back from the video itself.
+    suggested_via = env.params.query["via"]?.try do |ucid|
+      Invidious::Database::Channels.select(ucid)
+    end
+
     templated "watch"
   end
 
