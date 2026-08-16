@@ -234,10 +234,27 @@ git add backup && git commit -m "Update subscriptions" && git push
 ```
 
 The export writes a readable `subscriptions.json` and an importable
-`subscriptions.newpipe.json`; the restore script reads the former. Both scripts
-are idempotent and additive — restoring never removes a subscription, so running
-them twice is harmless. **Unsubscribing on one machine does not propagate**; the
-restore only ever adds.
+`subscriptions.newpipe.json`; the restore script reads the former.
+
+`restore-subscriptions.sh` has two modes, and both print the change before
+applying it:
+
+```sh
+./backup/restore-subscriptions.sh account            # add what's missing, never remove
+./backup/restore-subscriptions.sh account --mirror   # match the file exactly, removing extras
+```
+
+Additive is the default and is safe on a machine whose subscriptions may be
+ahead of the file. `--mirror` treats the file as the source of truth, so
+unsubscribing on one machine propagates to another once exported and committed.
+It prompts before removing anything; `--yes` skips that for scripted use.
+
+Editing `backup/subscriptions.json` by hand and running `--mirror` is a valid
+way to manage the list — only `ucid` is read, `author` is for humans.
+
+Mind the ordering: `--mirror` applies the file wholesale, so **export from the
+machine with the changes before mirroring onto another**, or newer
+subscriptions get removed.
 
 `docker-compose.local.yml` holds the config; `docker-compose.patched.yml`
 overrides the upstream prebuilt image with a local source build. Dropping the
