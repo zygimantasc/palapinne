@@ -7,30 +7,13 @@
 
 <div class="h-box">
     <a href="/feed/discover?refresh=1" class="pure-button">
-        <i class="icon ion-ios-refresh"></i> Refresh recommendations
+        <i class="icon ion-ios-refresh"></i> Refresh
     </a>
-    <span style="margin-left:1em; opacity:0.7">
-        <% if force_refresh %>
-            Freshly fetched from YouTube.
-        <% else %>
-            Showing saved results - they only change when you refresh.
-        <% end %>
-    </span>
 </div>
 
 <% if discover_videos.empty? %>
     <div class="h-box">
-        <h3>Nothing to discover yet</h3>
-        <p>
-            This feed is built from the channels you subscribe to: it looks at what
-            YouTube suggests alongside their recent videos, then keeps only the
-            suggestions from channels you don't already follow.
-        </p>
-        <p>
-            With very few subscriptions there is little left over, since most
-            suggestions point back at channels you already have. Importing your
-            subscription list gives it far more to work with.
-        </p>
+        <p>No recommendations yet. Press Refresh.</p>
     </div>
 <% else %>
     <div class="pure-g">

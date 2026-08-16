@@ -7,6 +7,12 @@ module Invidious::Routes::Misc
     user = env.get? "user"
 
     case preferences.default_home
+    when "Discover"
+      if user
+        env.redirect "/feed/discover"
+      else
+        env.redirect "/feed/popular"
+      end
     when "Popular"
       env.redirect "/feed/popular"
     when "Trending"

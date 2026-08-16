@@ -44,7 +44,7 @@ services:
         popular_enabled: true
         # The nav menu is read from user preferences, not top level.
         default_user_preferences:
-          default_home: "Subscriptions"
+          default_home: "Discover"
           feed_menu: ["Discover", "Subscriptions", "Playlists"]
           region: "LT"
     healthcheck:

@@ -133,10 +133,11 @@ module Invidious::Database::ChannelVideos
     return PG_DB.query_all(request, ids, as: ChannelVideo)
   end
 
-  # Up to `per_channel` of the newest videos from each of the given channels.
-  # Capping per channel rather than taking a flat "most recent N" stops one
+  # Up to `per_channel` videos picked at random from each of the given channels,
+  # returned in random order. Randomising inside the partition as well as across
+  # it means a fresh sample every call, while the per-channel cap keeps a
   # prolific uploader from supplying every seed of the discovery feed.
-  def select_recent_per_channel(ucids : Array(String), per_channel : Int32, limit : Int32) : Array(ChannelVideo)
+  def select_random_per_channel(ucids : Array(String), per_channel : Int32, limit : Int32) : Array(ChannelVideo)
     return [] of ChannelVideo if ucids.empty?
 
     request = <<-SQL
@@ -144,13 +145,13 @@ module Invidious::Database::ChannelVideos
              length_seconds, live_now, premiere_timestamp, views
       FROM (
         SELECT *, row_number() OVER (
-          PARTITION BY ucid ORDER BY published DESC
+          PARTITION BY ucid ORDER BY random()
         ) AS rn
         FROM channel_videos
         WHERE ucid = ANY($1)
       ) ranked
       WHERE rn <= $2
-      ORDER BY published DESC
+      ORDER BY random()
       LIMIT $3
     SQL
 

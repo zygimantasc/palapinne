@@ -99,6 +99,10 @@ struct Video
     return if text.nil? || text.empty?
     text.downcase.split(/[^\p{L}\p{N}]+/).each do |word|
       next if word.size < 3 || RELATED_STOPWORDS.includes?(word)
+      # Bare numbers carry no topic signal, and years in particular appear in
+      # unrelated titles and tags constantly - "2026" alone was enough to let
+      # a Lithuanian documentary through next to an AI video.
+      next if word.each_char.all?(&.number?)
       into << word
     end
   end

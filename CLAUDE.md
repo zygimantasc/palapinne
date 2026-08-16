@@ -52,6 +52,17 @@ kept, never fewer than 5.
 There is deliberately **no "too few results, show everything" fallback** — an
 earlier version had one and it restored exactly the junk this removes.
 
+Bare numbers are excluded from the token set. Years turn up in unrelated titles
+and tag lists constantly, and a shared `2026` alone was enough to let a
+Lithuanian documentary through next to an AI video.
+
+**Known weakness:** one shared word is a low bar. It holds up in the sidebar,
+where both videos come from the same recommendation context, but is weaker in
+Discover, where seeds are random. If junk reappears the next lever is requiring
+two shared words - or better, ranking against a profile built from the channel
+tags of everything the user subscribes to (`AboutChannel#tags`, returned by
+`get_about_info` but stored nowhere; the `channels` table has no tags column).
+
 Toggle: `filter_related_videos` (default `true`). Set `false` for stock behavior.
 
 ### 3. Discover feed — `src/invidious/discover.cr` (new) + route/template/DB
@@ -63,32 +74,80 @@ follows.
 
 `/feed/discover` instead:
 
-1. Takes the newest videos from each subscribed channel as seeds. The per-channel
-   depth adapts: few subscriptions → up to 10 videos each; many → one each,
-   targeting ~24 seeds total.
+1. Samples seeds **at random** from each subscribed channel's catalogue, in
+   random order. Per-channel depth adapts to reach ~24 seeds: 2 subscriptions
+   means 10 videos each, 13 means 2 each, 24+ means one each. The per-channel
+   cap stops a prolific uploader supplying every seed.
 2. Collects what YouTube recommends alongside each seed (already topic-filtered
    by patch 2).
-3. Drops anything from channels the user already follows, and anything watched.
-4. Ranks by how many *different* seeds recommended the same video — being
-   suggested alongside several of your subscriptions is a strong signal.
+3. Drops anything from channels the user already follows, anything watched, and
+   anything shown by a previous refresh.
+4. Shuffles, but puts videos recommended by *several different* seeds first —
+   that overlap is the one real quality signal here, and it fires rarely
+   (2 of 34 candidates in a measured run).
+5. Returns at most `RESULT_LIMIT` (16).
 
-**Refresh is manual only.** Seeds are read from cache regardless of age;
-`?refresh=1` forces a re-fetch. This was an explicit preference — the feed
-should not shift on its own between visits.
+Randomness was an explicit preference: every refresh should pull a different
+slice. Note the trade — seeds are no longer newest-first, so an old video is as
+likely to be sampled as a recent one.
+
+**Refresh is manual only, and a normal page load never touches YouTube.** The
+last built feed is held in memory per user and served verbatim; seeds absent
+from the video cache are skipped rather than fetched. Only `?refresh=1` fetches.
+An earlier version fetched uncached seeds on every load, which made the page
+take ~17s.
+
+**No top-up.** It processes a fixed 24 seeds and returns whatever they produced,
+so a refresh can yield fewer than 16. Refresh cost is constant regardless of
+`RESULT_LIMIT`. The already-seen set clears itself once the pool is exhausted,
+rather than showing an empty page.
+
+State is in memory (`@@feeds`, `@@seen`), so a container restart clears both.
 
 Files: `src/invidious/discover.cr`, `src/invidious/routes/feeds.cr`
 (`self.discover`), `src/invidious/routing.cr`, `src/invidious/database/channels.cr`
-(`select_recent_per_channel`), `src/invidious/views/feeds/discover.ecr`,
+(`select_random_per_channel`), `src/invidious/views/feeds/discover.ecr`,
 `src/invidious/views/components/feed_menu.ecr`.
 
 ### 4. Nav and preferences
 
-Popular and Trending removed from the feed menu; Subscriptions is the home page;
+Popular and Trending removed from the feed menu; Discover is the home page;
 region `LT`.
+
+`Routes::Misc.home` maps `default_home` to a feed path with a hardcoded `case`,
+so `"Discover"` had to be added there. Without it, `/` falls through to a blank
+search homepage - which is what the site logo links to.
 
 Note: `default_user_preferences` in config only seeds **new** accounts. Existing
 users keep their stored preferences, which live as JSON in `users.preferences`.
 Changing an existing account's menu means a `jsonb_set` UPDATE, not a config edit.
+
+### 5. Channel refresh without RSS — `src/invidious/channels/channels.cr`
+
+YouTube's per-channel RSS feed (`/feeds/videos.xml?channel_id=`) began returning
+**404** in August 2026. `fetch_channel` parsed it for the channel name and video
+list, so every refresh raised `"Deleted or invalid channel"` — and
+`RefreshChannelsJob` reacts to that message by marking the channel deleted in the
+database. Net effect: the subscriptions feed silently froze and channels were
+flagged as gone.
+
+Verified as a genuine YouTube change, not IP blocking: the endpoint 404s from
+inside the container and from the host, with and without a browser user-agent,
+while the channel API, video API and streaming all work normally.
+
+`fetch_channel` now takes the channel name from `get_about_info` and the video
+list from `IV::Channel::Tabs.get_videos`, both InnerTube endpoints that still
+work. Invidious' own `pull_all_videos` branch already built `ChannelVideo`s this
+way, so that shape is proven; it is now the only path.
+
+If channels show as deleted after an outage:
+
+```sql
+UPDATE channels SET deleted = false WHERE deleted = true;
+```
+
+This is the second confirmed upstream breakage in this fork (with patch 1) and
+is worth reporting — subject to `AI_POLICY.md`.
 
 ## Running it
 
