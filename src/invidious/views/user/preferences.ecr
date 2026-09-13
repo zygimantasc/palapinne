@@ -182,8 +182,11 @@
                 <input name="thin_mode" id="thin_mode" type="checkbox" <% if preferences.thin_mode %>checked<% end %>>
             </div>
 
+            <% # "Discover" is fork-only. Without it here, saving preferences %>
+            <% # rewrites feed_menu and default_home from this form and drops %>
+            <% # Discover from the nav. Logged-in only, like Subscriptions. %>
             <% if env.get?("user") %>
-                <% feed_options = {"", "Popular", "Trending", "Subscriptions", "Playlists"} %>
+                <% feed_options = {"", "Discover", "Popular", "Trending", "Subscriptions", "Playlists"} %>
             <% else %>
                 <% feed_options = {"", "Popular", "Trending"} %>
             <% end %>

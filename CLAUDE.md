@@ -2,7 +2,12 @@
 
 This is **not** an original project. It is a lightly patched fork of
 [iv-org/invidious](https://github.com/iv-org/invidious), run as a personal
-single-user instance on macOS via Docker.
+single-user instance via Docker.
+
+**Since 2026-09-12 the live instance runs on a Proxmox node, not the MacBook.**
+See "Where this runs" below before touching anything deployment-shaped — the
+architecture differs from the laptop setup in ways that matter (CPU arch, ports,
+TLS).
 
 If you are an AI assistant picking this up cold: read this whole file before
 changing anything. The patches below are the entire reason this fork exists.
@@ -190,10 +195,53 @@ docker compose -f docker-compose.local.yml -f docker-compose.patched.yml logs -f
 docker compose -f docker-compose.local.yml -f docker-compose.patched.yml down
 ```
 
-Serves on <http://127.0.0.1:3001> (3000 was taken by another container locally).
-Bound to localhost only — nothing else on the network can reach it. To reach it
-from a phone or TV, change the port binding in `docker-compose.local.yml` from
-`127.0.0.1:3001` to `0.0.0.0:3001` and use the machine's LAN address.
+On a laptop that serves <http://127.0.0.1:3001> (3000 was taken by another
+container locally), bound to localhost only.
+
+## Where this runs
+
+The live instance is no longer the MacBook.
+
+| | |
+|---|---|
+| Host | `ct-invidious` — unprivileged LXC **112** on the Proxmox node `pve1` |
+| URL | `https://ct-invidious.tail029499.ts.net` |
+| Shell | `ssh -i ~/.ssh/pve1_key root@ct-invidious` |
+| Path | `/opt/invidious` (this repo, working tree and `.git` included) |
+| Account | `silicone` — 32 subscriptions, 284 watched, preferences intact |
+
+Start it with the **three** compose files:
+
+```sh
+cd /opt/invidious
+docker compose -f docker-compose.local.yml \
+               -f docker-compose.patched.yml \
+               -f docker-compose.pve.yml up -d
+```
+
+### Differences from the laptop setup
+
+**The MacBook is arm64; the node is x86_64.** Images built on the laptop fail
+here with `exec /sbin/tini: exec format error`. The patched image must be built
+on the node itself — same source, same commit, same working-tree patches, just a
+different target. Postgres data files are architecture-independent and moved
+byte-for-byte.
+
+**`docker-compose.pve.yml` rebinds the port to `127.0.0.1:80` and uses
+`ports: !override`.** Without `!override` Compose *appends* to the list and the
+stack dies with "address already in use" trying to bind 3001 and 80 at once.
+`external_port` is gone because 80 is the http default, so the player builds
+correct self-links without it.
+
+**`tailscale serve` fronts it on `:443`** with a real Let's Encrypt certificate,
+proxying to the loopback port. The container's own port is open on no network
+interface, and the container is fenced off the LAN — it reaches the internet but
+not `192.168.0.0/16`. Casting to a TV therefore does not work; nothing else is
+affected.
+
+**`.git` is required to build.** `docker/Dockerfile` does `COPY ./.git/ ./.git/`
+to derive the version string, so a source tarball without it fails at that layer.
+Git also needs `safe.directory` set when the files carry another machine's UID.
 
 ### On a fresh machine
 
